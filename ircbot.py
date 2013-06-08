@@ -57,8 +57,11 @@ class IRCBot(IRCConn):
             self.join(channel)
 
     def reply(self, channel, user, message):
-        out = "%s: %s" % (user, message)
-        self.chanmsg(channel, out)
+        if channel:
+            out = "%s: %s" % (user, message)
+            self.chanmsg(channel, out)
+        else:
+            self.privmsg(user, message)
 
     def join(self, channel):
         super(IRCBot, self).join(channel)
@@ -78,10 +81,17 @@ class IRCBot(IRCConn):
         else:
             return "I know no commands."
 
-    def on_chanmsg(self, channel, user, message):
+
+    def run_commands(self, channel, user, message):
         try:
             for command in self.commands:
                 if command(self, channel, user, message): break
         except Exception, e:
             self.reply(channel, user, 'an error occurred. Ping %s about it.' % (self.owner,))
             print traceback.format_exc()
+
+    def on_chanmsg(self, *args):
+        self.run_commands(*args)
+
+    def on_privmsg(self, *args):
+        self.run_commands(None, *args)
