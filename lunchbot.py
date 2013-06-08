@@ -154,7 +154,7 @@ class LunchBot(IRCConn):
             self.reply('an error occurred. Ping rpearl about it.')
 
 if __name__ == '__main__':
-    c = LunchBot('lunchbot_', channels=["#cslunchbot-test"])
+    c = LunchBot('cslunchbot', channels=["#cslunch"])
     c.connect('irc.freenode.net', 6667)
 
     signal.signal(signal.SIGINT, lambda *args: tornado.ioloop.IOLoop.instance().stop())
