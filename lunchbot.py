@@ -126,9 +126,11 @@ class LunchBot(IRCConn):
     def cancel_timer(self, channel, user, message):
         """Cancels a timer"""
         if message not in self.timers[user]:
-            return "you don't have a timer for %s!" % (message,)
+            return "you don't have a timer for '%s'!" % (message,)
         cb, _ = self.timers[user][message]
         self.io_loop.remove_timeout(cb)
+        del self.timers[user][message]
+        return "Okay, removing timer for '%s'." % (message,)
 
     @command(trigger='help')
     def help(self, channel, user, message):
