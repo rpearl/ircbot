@@ -145,8 +145,11 @@ class LunchBot(IRCConn):
             return "I know no commands."
 
     def on_chanmsg(self, *args):
-        for command in self.commands:
-            if command(self, *args): break
+        try:
+            for command in self.commands:
+                if command(self, *args): break
+        except Exception, e:
+            self.reply('an error occurred. Ping rpearl about it.')
 
 if __name__ == '__main__':
     c = LunchBot('lunchbot_', channels=["#cslunchbot-test"])
