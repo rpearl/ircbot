@@ -44,9 +44,9 @@ class LunchBot(IRCBot):
             return "'%s' is not an integer" % (when,)
 
         if msg in self.timers[user]:
-            return "there is already a timer for '%s'" % (msg,)
+            return "there is already a timer for %s" % (msg,)
 
-        end = choice(["%s is done", "%s is ready", "%s is finished"]) % msg
+        end = "timer for " + choice(["%s is done", "%s is ready", "%s is finished"]) % msg
 
         end_time = datetime.now()+timedelta(minutes=when)
         end_ts = time.mktime(end_time.timetuple())
@@ -57,7 +57,7 @@ class LunchBot(IRCBot):
 
         cb = self.io_loop.add_timeout(end_ts, response)
         self.timers[user][msg] = (cb, end_ts)
-        return "okay! starting %d minute timer for '%s'." % (when, msg)
+        return "okay! starting %d minute timer for %s." % (when, msg)
 
     @command(trigger='list')
     def list_timers(self, channel, user, message):
@@ -65,7 +65,7 @@ class LunchBot(IRCBot):
         s = []
         for msg, (cb, end_time) in self.timers[user].iteritems():
             done = int(end_time - time.time())
-            out = "'%s' in %02d:%02d" % (msg, done / 60, done % 60)
+            out = "%s in %02d:%02d" % (msg, done / 60, done % 60)
             s.append(out)
         if s:
             return 'you have the following timers: %s' % (', '.join(s),)
@@ -76,11 +76,11 @@ class LunchBot(IRCBot):
     def cancel_timer(self, channel, user, message):
         """Cancels a timer"""
         if message not in self.timers[user]:
-            return "you don't have a timer for '%s'!" % (message,)
+            return "you don't have a timer for %s!" % (message,)
         cb, _ = self.timers[user][message]
         self.io_loop.remove_timeout(cb)
         del self.timers[user][message]
-        return "Okay, removing timer for '%s'." % (message,)
+        return "Okay, removing timer for %s." % (message,)
 
 
 if __name__ == '__main__':
