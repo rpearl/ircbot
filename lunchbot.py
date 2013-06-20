@@ -30,6 +30,10 @@ class LunchBot(IRCBot):
     def heart(self, channel, user, message):
         return '<3'
 
+    @command(trigger='source')
+    def source(self, channel, user, message):
+        return "I live at https://github.com/rpearl/lunchbot"
+
     @command(trigger='time')
     def add_timer(self, channel, user, message):
         """ Add a timer"""
