@@ -30,7 +30,10 @@ def command(trigger):
                 return f(bot, channel, user, message[len(cmd):].strip())
             return wrap
         def pred(bot, channel, user, message):
-            return message.split()[0] == cmd
+            s = message.split()
+            if not len(s):
+                return False
+            return s[0] == cmd
 
         if f.__doc__:
             doc = '%s: %s' % (cmd, f.__doc__)
