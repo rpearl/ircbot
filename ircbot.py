@@ -45,6 +45,7 @@ class IRCBot(IRCConn):
         super(IRCBot, self).__init__(nickname, io_loop)
         self.channels = set(channels)
         self.commands = set()
+        self.seen_exns = set()
         self.owner = owner
         for name in dir(self):
             f = getattr(self, name)
@@ -87,8 +88,11 @@ class IRCBot(IRCConn):
             for command in self.commands:
                 if command(self, channel, user, message): break
         except Exception, e:
-            self.reply(channel, user, 'an error occurred. Ping %s about it.' % (self.owner,))
-            print traceback.format_exc()
+            s = traceback.format_exc()
+            if s not in self.seen_exns:
+                self.seen_exns.add(s)
+                self.reply(channel, user, 'an error occurred. Ping %s about it.' % (self.owner,))
+            print s
 
     def on_chanmsg(self, *args):
         self.run_commands(*args)
