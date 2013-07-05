@@ -1,5 +1,6 @@
 from tornado_irc import IRCConn
 import traceback
+import logging
 
 class Command(object):
     def __init__(self, predicate, f, docstring=None):
@@ -10,6 +11,7 @@ class Command(object):
     def __call__(self, bot, channel, user, message):
         ret = self.predicate(bot, channel, user, message)
         if ret:
+            logging.info("responding to %s < %s> %s" % (channel, user, message))
             resp = self.f(bot, channel, user, message)
             if resp:
                 bot.reply(channel, user, resp)
@@ -56,7 +58,7 @@ class IRCBot(IRCConn):
                 self.commands.add(f)
 
     def on_connect(self):
-        print "connected"
+        logging.info("connected")
         for channel in self.channels:
             self.join(channel)
 
