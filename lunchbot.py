@@ -6,7 +6,6 @@ from datetime import (
 
 from random import choice
 
-import signal
 import time
 
 from ircbot import (
@@ -14,8 +13,6 @@ from ircbot import (
     response,
     command,
 )
-
-import tornado.ioloop
 
 class LunchBot(IRCBot):
     def __init__(self, *args, **kwargs):
@@ -84,8 +81,5 @@ class LunchBot(IRCBot):
 
 
 if __name__ == '__main__':
-    c = LunchBot('cslunchbot', channels=["#cslunch"], owner='rpearl')
-    c.connect('irc.freenode.net', 6667)
-
-    signal.signal(signal.SIGINT, lambda *args: tornado.ioloop.IOLoop.instance().stop())
-    tornado.ioloop.IOLoop.instance().start()
+    c = LunchBot('cslunchbot', owner='rpearl')
+    c.start("irc.freenode.net", 6667, channels=["#cslunch"])

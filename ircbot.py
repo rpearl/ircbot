@@ -1,4 +1,6 @@
 from tornado_irc import IRCConn
+
+import signal
 import traceback
 import logging
 
@@ -46,9 +48,8 @@ def command(trigger):
     return _dec
 
 class IRCBot(IRCConn):
-    def __init__(self, nickname, io_loop=None, channels=[], owner="someone"):
+    def __init__(self, nickname, io_loop=None, owner="someone"):
         super(IRCBot, self).__init__(nickname, io_loop)
-        self.channels = set(channels)
         self.commands = set()
         self.seen_exns = set()
         self.owner = owner
@@ -104,3 +105,12 @@ class IRCBot(IRCConn):
 
     def on_privmsg(self, *args):
         self.run_commands(None, *args)
+
+    def start(self, server, port, channels=[]):
+        logging.basicConfig(format='['+self.nickname+'] %(levelname)s:%(message)s', level=logging.INFO)
+        logging.info("connecting to %s:%d" % (server, port))
+        self.channels = set(channels)
+        self.connect(server, port)
+        signal.signal(signal.SIGINT,
+                      lambda *a: self.io_loop.stop())
+        self.io_loop.start()
