@@ -1,3 +1,1 @@
 This is a simple IRC bot framework built on top of tornado.
-
-There is one example bot, which is a timer bot. I use it to make food.
