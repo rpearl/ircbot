@@ -3,6 +3,7 @@ from tornado_irc import IRCConn
 import signal
 import traceback
 import logging
+import sys
 
 class Command(object):
     def __init__(self, predicate, f, docstring=None):
@@ -107,7 +108,10 @@ class IRCBot(IRCConn):
         self.run_commands(None, *args)
 
     def start(self, server, port, channels=[]):
-        logging.basicConfig(format='['+self.nickname+'] %(levelname)s:%(message)s', level=logging.INFO)
+        logging.basicConfig(level=logging.INFO,
+                            format='[%(levelname)s %(asctime)s.%(msecs)d %(process)d] %(message)s',
+                            datefmt="%Y%m%d %H:%M:%S",
+                            stream=sys.stdout)
         logging.info("connecting to %s:%d" % (server, port))
         self.channels = set(channels)
         self.connect(server, port)
