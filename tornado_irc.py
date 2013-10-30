@@ -39,6 +39,9 @@ class IRCConn(object):
         """Callback taht is invoked on every private message"""
         pass
 
+    def on_close(self):
+        pass
+
     def connect(self, host, port, do_ssl=False, password=None):
         sock = None
         self._last_connection = (host, port, do_ssl, password)
@@ -59,6 +62,7 @@ class IRCConn(object):
             self.conn = tornado.iostream.SSLIOStream(sock, io_loop=self.io_loop)
         else:
             self.conn = tornado.iostream.IOStream(sock, io_loop=self.io_loop)
+        self.conn.set_close_callback(self.on_close)
         self.conn.read_until("\n", self._handle_data)
 
     def _write(self, data, *args, **kwargs):

@@ -107,6 +107,10 @@ class IRCBot(IRCConn):
     def on_privmsg(self, *args):
         self.run_commands(None, *args)
 
+    def on_close(self):
+        logging.info("got close callback")
+        self.connect(self.server, self.port)
+
     def start(self, server, port, channels=[]):
         logging.basicConfig(level=logging.INFO,
                             format='[%(levelname)s %(asctime)s.%(msecs)d %(process)d] %(message)s',
@@ -114,6 +118,8 @@ class IRCBot(IRCConn):
                             stream=sys.stdout)
         logging.info("connecting to %s:%d" % (server, port))
         self.channels = set(channels)
+        self.server = server
+        self.port = port
         self.connect(server, port)
         signal.signal(signal.SIGINT,
                       lambda *a: self.io_loop.stop())
