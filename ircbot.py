@@ -32,7 +32,8 @@ def command(trigger):
         cmd = '%'+trigger
         def wrapper(f):
             def wrap(bot, channel, user, message):
-                return f(bot, channel, user, message[len(cmd):].strip())
+                msg = ' '.join(message.split()[1:])
+                return f(bot, channel, user, msg)
             return wrap
         def pred(bot, channel, user, message):
             s = message.split()
