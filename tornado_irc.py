@@ -3,6 +3,8 @@ import re
 import socket
 import ssl
 
+
+from datetime import datetime
 import tornado.ioloop
 import tornado.iostream
 
@@ -26,6 +28,7 @@ class IRCConn(object):
         self.full_name = full_name
         self.conn = None
         self._state = IRC_DISCONNECTED
+        self.last_activity = datetime.now()
 
     def on_connect(self):
         """Callback that is invoked after connection"""
@@ -46,6 +49,7 @@ class IRCConn(object):
         sock = None
         self._last_connection = (host, port, do_ssl, password)
         self._password = password
+        self._state = IRC_DISCONNECTED
         for (family, socktype, proto, canonname, sockaddr) in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM, 0):
             try:
                 fd = socket.socket(family, socktype, proto)
@@ -67,10 +71,12 @@ class IRCConn(object):
 
     def _write(self, data, *args, **kwargs):
         logging.debug('<<< %s', data)
+        self.last_activity = datetime.now()
         self.conn.write(data + '\r\n', *args, **kwargs)
 
     def _handle_data(self, data):
         logging.debug(">>> %s", data.rstrip())
+        self.last_activity = datetime.now()
         ping_md = PING_RE.match(data)
         if ping_md:
             self._write("PONG " + ping_md.group('message'))

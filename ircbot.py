@@ -1,9 +1,14 @@
 from tornado_irc import IRCConn
+import tornado
+
+from datetime import datetime, timedelta
 
 import signal
 import traceback
 import logging
 import sys
+
+PING_TIMEOUT = timedelta(minutes=3)
 
 class Command(object):
     def __init__(self, predicate, f, docstring=None):
@@ -76,6 +81,12 @@ class IRCBot(IRCConn):
         super(IRCBot, self).join(channel)
         self.channels.add(channel)
 
+    def check_ping(self):
+        time_since_last = datetime.now() - self.last_activity
+        if time_since_last > PING_TIMEOUT:
+            logging.info('last ping was %r ago; reconnecting' % time_since_last)
+            self.conn.close()
+
     @command(trigger='help')
     def help(self, channel, user, message):
         """Show this message"""
@@ -109,7 +120,6 @@ class IRCBot(IRCConn):
         self.run_commands(None, *args)
 
     def on_close(self):
-        logging.info("got close callback")
         self.connect(self.server, self.port)
 
     def start(self, server, port, channels=[]):
@@ -124,4 +134,6 @@ class IRCBot(IRCConn):
         self.connect(server, port)
         signal.signal(signal.SIGINT,
                       lambda *a: self.io_loop.stop())
+        check_ping_handler = tornado.ioloop.PeriodicCallback(self.check_ping, 2*60*1000)
+        check_ping_handler.start()
         self.io_loop.start()
