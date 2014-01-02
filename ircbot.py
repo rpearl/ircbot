@@ -122,8 +122,9 @@ class IRCBot(IRCConn):
     def on_close(self):
         self.connect(self.server, self.port)
 
-    def start(self, server, port, channels=[]):
-        logging.basicConfig(level=logging.INFO,
+    def start(self, server, port, channels=None):
+        channels = channels or []
+        logging.basicConfig(level=logging.DEBUG,
                             format='[%(levelname)s %(asctime)s.%(msecs)d %(process)d] %(message)s',
                             datefmt="%Y%m%d %H:%M:%S",
                             stream=sys.stdout)
