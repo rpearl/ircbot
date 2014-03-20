@@ -4,7 +4,8 @@ import socket
 import ssl
 
 
-from datetime import datetime
+from datetime import datetime, timedelta
+import time
 import tornado.ioloop
 import tornado.iostream
 
@@ -18,6 +19,8 @@ CHANMSG_RE=re.compile(':(?P<username>[^!]+)!(?P<who>[^ ]+) PRIVMSG (?P<chan>#[^ 
 PRIVMSG_RE=re.compile(':(?P<username>[^!]+)!(?P<who>[^ ]+) PRIVMSG (?P<user>[^#][^ ]*) :(?P<msg>.*)')
 ERROR_RE=re.compile('ERROR :(?P<msg>.*)')
 
+PING_TIMEOUT = timedelta(minutes=3)
+
 
 class IRCConn(object):
     def __init__(self, nickname, full_name="Tornado IRC", io_loop=None):
@@ -28,7 +31,7 @@ class IRCConn(object):
         self.full_name = full_name
         self.conn = None
         self._state = IRC_DISCONNECTED
-        self.last_activity = datetime.now()
+        self.timeout_handle = None
 
     def on_connect(self):
         """Callback that is invoked after connection"""
@@ -44,6 +47,13 @@ class IRCConn(object):
 
     def on_close(self):
         pass
+
+    def on_timeout(self):
+        pass
+
+    def _do_timeout(self):
+        self.timeout_handle = None
+        self.on_timeout()
 
     def connect(self, host, port, do_ssl=False, password=None):
         sock = None
@@ -69,14 +79,20 @@ class IRCConn(object):
         self.conn.set_close_callback(self.on_close)
         self.conn.read_until("\n", self._handle_data)
 
+    def update_activity(self):
+        if self.timeout_handle:
+            self.io_loop.remove_timeout(self.timeout_handle)
+        finish = datetime.now() + PING_TIMEOUT
+        self.timeout_handle = self.io_loop.add_timeout(time.mktime(finish.timetuple()), self._do_timeout)
+
     def _write(self, data, *args, **kwargs):
         logging.debug('<<< %s', data)
-        self.last_activity = datetime.now()
+        self.update_activity()
         self.conn.write(data + '\r\n', *args, **kwargs)
 
     def _handle_data(self, data):
         logging.debug(">>> %s", data.rstrip())
-        self.last_activity = datetime.now()
+        self.update_activity()
         ping_md = PING_RE.match(data)
         if ping_md:
             self._write("PONG " + ping_md.group('message'))
@@ -103,7 +119,6 @@ class IRCConn(object):
             if emd:
                 if "Closing Link" in emd.group('msg'):
                     self.conn.close()
-                    self.connect(*self._last_connection)
                     return
         self.conn.read_until("\n", self._handle_data)
 
