@@ -88,10 +88,12 @@ class IRCConn(object):
     def _write(self, data, *args, **kwargs):
         logging.debug('<<< %s', data)
         self.update_activity()
+        data = data.encode('utf-8')
         self.conn.write(data + '\r\n', *args, **kwargs)
 
     def _handle_data(self, data):
         logging.debug(">>> %s", data.rstrip())
+        data = data.decode('utf-8')
         self.update_activity()
         ping_md = PING_RE.match(data)
         if ping_md:
