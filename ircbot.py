@@ -32,6 +32,13 @@ def response(trigger):
         return Command(pred, f)
     return _dec
 
+def unrequested_response(trigger):
+    def _dec(f):
+        def pred(bot, channel, user, message):
+            return trigger in message
+        return Command(pred, f)
+    return _dec
+
 def command(trigger):
     def _dec(f):
         cmd = '%'+trigger
