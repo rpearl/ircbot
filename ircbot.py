@@ -131,7 +131,7 @@ class IRCBot(IRCConn):
                 logging.error(e)
                 logging.info("backing off for %r" % timeout)
                 time.sleep(timeout)
-                timeout = max(timeout * 2, 5*60)
+                timeout = min(timeout * 2, 5*60)
 
     def on_timeout(self):
         logging.info("Ping timeout after %r" %  PING_TIMEOUT)
